@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECDSA with Deterministic Key Generation</title>
+</head>
+<body>
+    <h1>Deterministic ECDSA Keys</h1>
+    <label for="seed">Seed:</label>
+    <input type="text" id="seed" placeholder="Enter your seed"><br><br>
+    <label for="salt">Salt:</label>
+    <input type="text" id="salt" placeholder="Enter your salt"><br><br>
+    <button onclick="generateKeys()">Generate Keys</button><br><br>
+    
+    <label for="message">Message to Sign:</label>
+    <input type="text" id="message" placeholder="Enter your message"><br><br>
+    <button onclick="signMessage()">Sign</button><br><br>
+
+    <div id="output"></div>
+
+    <script src="math.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
