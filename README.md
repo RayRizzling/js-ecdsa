@@ -80,7 +80,7 @@ This example implementation demonstrates the Elliptic Curve Digital Signature Al
 
 ## Example of Output
 
-Private Key: <Private Key in Hex>
+Private Key: in Hex
 
 Public Key: { "x": "Public Key X in Hex", "y": "Public Key Y in Hex" }
 
