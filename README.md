@@ -77,6 +77,9 @@ This example implementation demonstrates the Elliptic Curve Digital Signature Al
 3. **Verify Signatures**:  
    - The generated signature can be verified using the public key and the message. The verification result will be displayed, with a background color indicating whether the signature is valid (green) or invalid (red).
 
+4. **Sign and Verify JWTs**:
+   - To use the generated keys for JWTs, convert a JWT Payload and sign it. You can verify the JWT signature by using the public key. The verification result will indicate whether the JWT is valid or not.
+
 
 ## Example of Output
 
@@ -85,6 +88,8 @@ Private Key: in Hex
 Public Key: { "x": "Public Key X in Hex", "y": "Public Key Y in Hex" }
 
 Signature: { "r": "Signature R in Hex", "s": "Signature S in Hex" }
+
+JWT: { "header": "JWT Header", "payload": "JWT Payload", "signature": "JWT Signature" }
 
 
 ## Credits

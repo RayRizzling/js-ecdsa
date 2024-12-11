@@ -189,3 +189,97 @@ async function verifySignature() {
         return false;
     }
 }
+
+function toJWK(privateKey, publicKey, curveName) {
+    const base64UrlEncode = (buffer) =>
+        btoa(String.fromCharCode(...buffer))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    const hexToUint8Array = (hex) =>
+        new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+    const xArray = publicKey.x.toString(16).padStart(64, '0');
+    const yArray = publicKey.y.toString(16).padStart(64, '0');
+    const dArray = privateKey ? privateKey.toString(16).padStart(64, '0') : null;
+
+    return {
+        kty: 'EC',
+        crv: curveName,
+        x: base64UrlEncode(hexToUint8Array(xArray)),
+        y: base64UrlEncode(hexToUint8Array(yArray)),
+        ...(privateKey ? { d: base64UrlEncode(hexToUint8Array(dArray)) } : {})
+    };
+}
+
+function convertToJWK() {
+    const privateKeyHex = document.getElementById('privateKey')?.textContent;
+    const publicKeyJSON = JSON.parse(document.getElementById('publicKey')?.textContent);
+
+    if (!privateKeyHex || !publicKeyJSON) {
+        alert("Generate keys first!");
+        return;
+    }
+
+    const privateKey = BigInt("0x" + privateKeyHex);
+    const publicKey = {
+        x: BigInt("0x" + publicKeyJSON.x),
+        y: BigInt("0x" + publicKeyJSON.y)
+    };
+
+    const jwk = toJWK(privateKey, publicKey, "P-256");
+    console.log("Generated JWK:", jwk);
+    document.getElementById('output').innerHTML += `
+        <h3>JWK:</h3>
+        <pre id="jwkText">${JSON.stringify(jwk, null, 2)}</pre>
+    `;
+}
+
+async function verifyWithCryptoAPI() {
+    const jwkText = document.getElementById('jwkText').textContent;
+    const signatureText = document.getElementById('signature').textContent;
+    const message = document.getElementById('message').value;
+
+    if (!jwkText || !signatureText || !message) {
+        alert("Make sure keys, signature, and message are available!");
+        return;
+    }
+
+    const jwk = JSON.parse(jwkText);
+    const signature = JSON.parse(signatureText);
+
+    try {
+        const cryptoKey = await crypto.subtle.importKey(
+            "jwk",
+            {
+                kty: jwk.kty,
+                crv: jwk.crv,
+                x: jwk.x,
+                y: jwk.y,
+            },
+            { name: "ECDSA", namedCurve: jwk.crv },
+            false,
+            ["verify"]
+        );
+
+        const encoder = new TextEncoder();
+        const data = encoder.encode(message);
+
+        const r = BigInt("0x" + signature.r);
+        const s = BigInt("0x" + signature.s);
+        const rBytes = new Uint8Array(r.toString(16).padStart(64, '0').match(/.{2}/g).map(byte => parseInt(byte, 16)));
+        const sBytes = new Uint8Array(s.toString(16).padStart(64, '0').match(/.{2}/g).map(byte => parseInt(byte, 16)));
+        const sigBytes = new Uint8Array([...rBytes, ...sBytes]);
+
+        const isValid = await crypto.subtle.verify(
+            { name: "ECDSA", hash: { name: "SHA-256" } },
+            cryptoKey,
+            sigBytes,
+            data
+        );
+
+        alert(`Verification result: ${isValid}`);
+    } catch (err) {
+        console.error("Error during verification:", err);
+        alert("Verification failed!");
+    }
+}
